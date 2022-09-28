@@ -290,7 +290,7 @@ Engine::Engine(ram::TranslationUnit& tUnit)
           frequencyCounterEnabled(Global::config().has("profile-frequency")),
           numOfThreads(number_of_threads(std::stoi(Global::config().get("jobs")))), tUnit(tUnit),
           isa(tUnit.getAnalysis<ram::analysis::IndexAnalysis>()), recordTable(numOfThreads),
-          symbolTable(numOfThreads) {}
+          symbolTable(numOfThreads), regexCache(numOfThreads) {}
 
 Engine::RelationHandle& Engine::getRelationHandle(const std::size_t idx) {
     return *relations[idx];
@@ -757,7 +757,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     fatal("ICE: functor `%s` must map onto `NestedIntrinsicOperator`", cur.getOperator());
             }
 
-            { UNREACHABLE_BAD_CASE_ANALYSIS }
+            {UNREACHABLE_BAD_CASE_ANALYSIS}
 
 #undef BINARY_OP_LOGICAL
 #undef BINARY_OP_INTEGRAL
@@ -791,7 +791,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 case ram::NestedIntrinsicOp::FRANGE: return RUN_RANGE(RamFloat);
             }
 
-            { UNREACHABLE_BAD_CASE_ANALYSIS }
+        {UNREACHABLE_BAD_CASE_ANALYSIS}
 #undef RUN_RANGE
         ESAC(NestedIntrinsicOperator)
 
@@ -1015,11 +1015,13 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     const std::string& text = getSymbolTable().decode(right);
                     bool result = false;
                     try {
-                        result = std::regex_match(text, std::regex(pattern));
+                        const std::regex& regex = regexCache.getOrCreate(pattern);
+                        result = std::regex_match(text, regex);
                     } catch (...) {
                         std::cerr << "warning: wrong pattern provided for match(\"" << pattern << "\",\""
                                   << text << "\").\n";
                     }
+
                     return result;
                 }
                 case BinaryConstraintOp::NOT_MATCH: {
@@ -1029,7 +1031,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     const std::string& text = getSymbolTable().decode(right);
                     bool result = false;
                     try {
-                        result = !std::regex_match(text, std::regex(pattern));
+                        const std::regex& regex = regexCache.getOrCreate(pattern);
+                        result = !std::regex_match(text, regex);
                     } catch (...) {
                         std::cerr << "warning: wrong pattern provided for !match(\"" << pattern << "\",\""
                                   << text << "\").\n";
@@ -1052,7 +1055,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 }
             }
 
-            { UNREACHABLE_BAD_CASE_ANALYSIS }
+        {UNREACHABLE_BAD_CASE_ANALYSIS}
 
 #undef COMPARE_NUMERIC
 #undef COMPARE_STRING
