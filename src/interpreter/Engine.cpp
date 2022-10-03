@@ -1356,6 +1356,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                             ->readAll(rel);
                 } catch (std::exception& e) {
                     std::cerr << "Error loading " << rel.getName() << " data: " << e.what() << "\n";
+                    exit(EXIT_FAILURE);
                 }
                 return true;
             } else if (op == "output" || op == "printsize") {
