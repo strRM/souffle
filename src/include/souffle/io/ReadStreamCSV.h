@@ -63,6 +63,18 @@ public:
     }
 
 protected:
+    bool readNextLine(std::string& line) {
+        if (!getline(file, line)) {
+            return false;
+        }
+        // Handle Windows line endings on non-Windows systems
+        if (!line.empty() && line.back() == '\r') {
+            line = line.substr(0, line.length() - 1);
+        }
+        ++lineNumber;
+        return true;
+    }
+
     /**
      * Read and return the next tuple.
      *
@@ -76,14 +88,9 @@ protected:
         std::string line;
         Own<RamDomain[]> tuple = mk<RamDomain[]>(typeAttributes.size());
 
-        if (!getline(file, line)) {
+        if (!readNextLine(line)) {
             return nullptr;
         }
-        // Handle Windows line endings on non-Windows systems
-        if (!line.empty() && line.back() == '\r') {
-            line = line.substr(0, line.length() - 1);
-        }
-        ++lineNumber;
 
         std::size_t start = 0;
         std::size_t columnsFilled = 0;
@@ -162,24 +169,35 @@ protected:
         return value;
     }
 
-    std::string nextElement(const std::string& line, std::size_t& start) {
+    std::string nextElement(std::string& line, std::size_t& start) {
         std::string element;
 
         if (rfc4180) {
             if (line[start] == '"') {
                 // quoted field
-                const std::size_t end = line.length();
+                std::size_t end = line.length();
                 std::size_t pos = start + 1;
                 bool foundEndQuote = false;
-                while (pos < end) {
+                while (!foundEndQuote) {
+                    if (pos == end) {
+                        if (!readNextLine(line)) {
+                            break;
+                        }
+                        // account for new line in the field
+                        element.push_back('\n');
+                        // start over
+                        pos = 0;
+                        end = line.length();
+                    }
                     char c = line[pos++];
-                    if (c == '"' && (pos < end) && line[pos] == '"') {
+                    if (c == '"') {
                         // two double-quote => one double-quote
-                        element.push_back('"');
-                        ++pos;
-                    } else if (c == '"') {
-                        foundEndQuote = true;
-                        break;
+                        if (pos < end && line[pos] == '"') {
+                            element.push_back('"');
+                            ++pos;
+                        } else {
+                            foundEndQuote = true;
+                        }
                     } else {
                         element.push_back(c);
                     }

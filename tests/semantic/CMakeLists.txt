@@ -6,12 +6,11 @@
 
 include(SouffleTests)
 
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_subdirectory(pragma2)
 endif()
 
 add_subdirectory(functor_fact)
-
 
 function(positive_test NAME)
     souffle_positive_test(${NAME} semantic ${ARGN})
@@ -22,8 +21,8 @@ function(negative_test NAME)
 endfunction()
 
 function(SOUFFLE_POSITIVE_FUNCTOR_TEST TEST_NAME)
-        souffle_run_test_helper(TEST_NAME ${TEST_NAME} FUNCTORS ${ARGN})
-        souffle_run_test_helper(TEST_NAME ${TEST_NAME} COMPILED FUNCTORS ${ARGN})
+    souffle_run_test_helper(TEST_NAME ${TEST_NAME} FUNCTORS ${ARGN})
+    souffle_run_test_helper(TEST_NAME ${TEST_NAME} COMPILED FUNCTORS ${ARGN})
 endfunction()
 
 negative_test(adt_invalid_arity)
@@ -60,6 +59,7 @@ positive_test(comp_opt)
 negative_test(counter2)
 positive_test(counter)
 negative_test(disjoint_names)
+
 # TODO (see issue #231) negative_test(divide_by_zero)
 positive_test(duplicates)
 positive_test(eqrel_tests COMPILED_SPLITTED)
@@ -111,6 +111,7 @@ positive_test(load7)
 positive_test(load8)
 positive_test(load9)
 positive_test(load10)
+positive_test(load11)
 positive_test(load_adt)
 positive_test(load_adt2)
 positive_test(load_adt3)
@@ -161,14 +162,18 @@ negative_test(rule_grounded)
 negative_test(rule_typecompat)
 negative_test(rule_undeclared_relation2)
 negative_test(rule_undeclared_relation)
-if (SOUFFLE_USE_ZLIB)
+
+if(SOUFFLE_USE_ZLIB)
     souffle_run_test(TEST_NAME store CATEGORY semantic EXTRA_DATA gzip)
 endif()
+
 positive_test(store2)
-if (SOUFFLE_USE_SQLITE)
+
+if(SOUFFLE_USE_SQLITE)
     souffle_run_test(TEST_NAME store3 CATEGORY semantic EXTRA_DATA sqlite3)
     souffle_run_test(TEST_NAME store6 CATEGORY semantic EXTRA_DATA sqlite3)
 endif()
+
 positive_test(store4)
 positive_test(store5)
 positive_test(store_adt)
@@ -223,28 +228,33 @@ negative_test(witness_check)
 positive_test(adt_access)
 negative_test(bad_functor_types)
 positive_test(choice1)
+
 # positive_test(comparison) TODO See PR #1932
 negative_test(disjoint_names2)
 positive_test(pragma)
 positive_test(pragma1)
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	# Only test `pragma2` w/ interpreter mode.
-	# Reason: Linux tooling becomes violently incontinent when confronted with the
-	#         idea of an so w/ non alpha-numeric characters in the name.
-	#         See `tests/semantic/pragma2/CMakeLists.txt` for details.
-	# souffle_positive_functor_test(pragma2 CATEGORY semantic)
-	souffle_run_test_helper(TEST_NAME pragma2 FUNCTORS CATEGORY semantic)
+
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # Only test `pragma2` w/ interpreter mode.
+    # Reason: Linux tooling becomes violently incontinent when confronted with the
+    # idea of an so w/ non alpha-numeric characters in the name.
+    # See `tests/semantic/pragma2/CMakeLists.txt` for details.
+    # souffle_positive_functor_test(pragma2 CATEGORY semantic)
+    souffle_run_test_helper(TEST_NAME pragma2 FUNCTORS CATEGORY semantic)
 endif()
+
 positive_test(rel_redundant)
 positive_test(type_as4)
 positive_test(record_alias)
 positive_test(record_alias2)
 positive_test(adt_alias)
-if (FALSE)
-# semantics checker of complex rule does not catch this
-# "variable only occurs once" issue.
-positive_test(complex_rule)
-endif ()
+
+if(FALSE)
+    # semantics checker of complex rule does not catch this
+    # "variable only occurs once" issue.
+    positive_test(complex_rule)
+endif()
+
 positive_test(compose_components)
 positive_test(inherit_argument)
 positive_test(inherit_argument_override)
